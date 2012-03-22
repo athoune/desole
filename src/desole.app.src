@@ -1,0 +1,12 @@
+{application, desole,
+ [
+  {description, "Build DSL for Erlang"},
+  {vsn, "0.1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { desole_app, []}},
+  {env, []}
+ ]}.
