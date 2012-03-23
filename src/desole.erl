@@ -7,9 +7,7 @@
 run(Context, Methods, Actions) ->
     run(Context, Methods, Actions, nil).
 
-run(Context, Methods, [Head|Tail], _Result) ->
-    io:format("Head ~p~n", [Head]),
-    [Action | Args] = Head,
+run(Context, Methods, [{Action, Args}|Tail], _Result) ->
     F = proplists:get_value(Action, Methods),
     {ok, NewContext, NewResult} = F(Context, Args),
     run(NewContext, Methods, Tail, NewResult);
