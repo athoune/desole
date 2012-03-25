@@ -45,7 +45,7 @@ set_test() ->
 
 del_test() ->
     {ok, _Context, A} = desole:run([{a, {int, 42}}], [desole_math, desole_stack], [
-        {'fun', del, [{atom, b}]}, %% does nothin but shouldn't crash
+        {'fun', del, [{atom, b}]}, %% does nothing but shouldn't crash
         {'fun', del, [{atom, a}]},
         {var, a}
     ]),
