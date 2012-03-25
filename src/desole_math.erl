@@ -1,4 +1,4 @@
--module(desole_main).
+-module(desole_math).
 
 -export([add/2, remove/2]).
 
