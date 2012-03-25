@@ -21,5 +21,11 @@ compose_test() ->
             {'fun', add, [{int, 2}, {int, 1}]},
             {int, 3}]
         }]),
-    ?debugFmt("~p~n", [A]),
     ?assertEqual({int, 0}, A).
+
+multiline_test() ->
+    {ok, _Context, A} = desole:run([], [desole_main], [
+            {'fun', add, [{int, 1}, {int, 1}]},
+            {int, 42}
+        ]),
+    ?assertEqual({int, 42}, A).
