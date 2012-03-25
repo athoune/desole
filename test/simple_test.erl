@@ -29,3 +29,9 @@ multiline_test() ->
             {int, 42}
         ]),
     ?assertEqual({int, 42}, A).
+
+stack_test() ->
+    {ok, _Context, A} = desole:run([{a,{int, 42}}], [desole_main], [
+        {var, a}
+    ]),
+    ?assertEqual({int, 42}, A).

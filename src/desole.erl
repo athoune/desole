@@ -8,15 +8,15 @@
 -endif.
 
 -record(context, {
-    context,
+    stack,
     methods
     }).
 
-run(Context, Libs, Actions) ->
-    run(Context, Libs, Actions, nil).
+run(Stack, Libs, Actions) ->
+    run(Stack, Libs, Actions, nil).
 
-run(Context, Libs, Actions, Result) ->
-    one_line(#context{context = Context, methods=functions(Libs)}, Actions, Result).
+run(Stack, Libs, Actions, Result) ->
+    one_line(#context{stack = Stack, methods=functions(Libs)}, Actions, Result).
 
 one_line(Context, [Head|Tail], _Result) ->
     {NewContext, NewResult} = eval(Context, Head),
@@ -29,6 +29,8 @@ eval(#context{methods=Methods} = Context, {'fun', Action, Args}) ->
     F = proplists:get_value(Action, Methods),
     {ok, NewContext, NewResult} = F(Context, ArgsValue),
     {NewContext, NewResult};
+eval(#context{stack=Stack} = Context, {var, Key}) ->
+    {Context, proplists:get_value(Key, Stack, {nil})};
 eval(Context, Value) ->
     {Context, Value}.
 
