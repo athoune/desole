@@ -1,6 +1,6 @@
 -module(desole).
 
--export([run/3, auto_type/1]).
+-export([run/3, auto_type/1, eval/2, evals/3]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

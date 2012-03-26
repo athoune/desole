@@ -7,7 +7,7 @@ function_test() ->
         fun({Name, _Fun}, Acc) ->
             [Name | Acc]
         end, [], M)),
-    ?assertEqual([add,remove,'if',ifelse,while,for], F).
+    ?assertEqual([add,remove,times,'div','if',ifelse,while,for], F).
 
 %% add(2, 1)
 add_test() ->
@@ -41,7 +41,14 @@ set_test() ->
         {'fun', set, [{atom, a}, {int, 42}]},
         {var, a}
     ]),
-    ?assertEqual({int, 42}, A).
+    ?assertEqual({int, 42}, A),
+    {ok, _Context2, B} = desole:run([], [desole_math, desole_stack], [
+        {'fun', set, [{atom, a}, {int, 42}]},
+        {'fun', set, [{atom, b}, {'fun', times, [{int, 2}, {'fun', get, [{atom, a}]}]}]},
+        {var, b}
+    ]),
+    ?assertEqual({int, 84}, B).
+
 
 del_test() ->
     {ok, _Context, A} = desole:run([{a, {int, 42}}], [desole_math, desole_stack], [
@@ -50,3 +57,4 @@ del_test() ->
         {var, a}
     ]),
     ?assertEqual(nil, A).
+
