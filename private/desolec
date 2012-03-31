@@ -1,21 +1,20 @@
 #!/usr/bin/env python
-# -----------------------------------------------------------------------------
-# calc.py
-#
-# A simple calculator with variables.   This is from O'Reilly's
-# "Lex and Yacc", p. 63.
-# -----------------------------------------------------------------------------
+
+# Great thanks to http://www.matthieuamiguet.ch/pages/compilateurs
 
 import sys
 
 if sys.version_info[0] >= 3:
     raw_input = input
 
+reserved_words = (
+        'if'
+        )
 tokens = (
-    'NAME','NUMBER','SEMI'
-    )
+    'NAME','NUMBER','SEMI', 'NEWLINE'
+    ) + tuple(map(lambda s:s.upper(), reserved_words))
 
-literals = ['=','+','-','*','/', '(',')']
+literals = ['=', '+', '-', '*', '/', '(', ')']
 
 # Tokens
 
@@ -26,10 +25,13 @@ def t_NUMBER(t):
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.value = "{atom, %s}" % t.value
+    if t.value in reserved_words:
+        t.type = t.value.upper()
+    else:
+        t.value = "{atom, %s}" % t.value
     return t
 
-t_ignore = " \t"
+t_ignore = " \t\n"
 
 t_SEMI = r';'
 
@@ -48,7 +50,7 @@ def t_error(t):
 
 # Build the lexer
 import ply.lex as lex
-lexer = lex.lex(debug=1)
+lexer = lex.lex(debug=0)
 
 # Parsing rules
 
@@ -62,15 +64,19 @@ out = []
 # dictionary of names
 names = { }
 
+#def p_expression_newline(p):
+    #"expression : expression NEWLINE"
+    #p[0] = p[2]
+
 def p_statement_expr(p):
-    '''instruction : expression
-                   | expression SEMI instruction
+    '''instruction : expression SEMI instruction
                    | expression SEMI'''
     out.append(p[1])
+    p[0] = []
 
 def p_statement_assign(p):
-    'statement : NAME "=" expression'
-    out.append("{'fun', set, [ %s, %s]}" % (p[1], p[3]))
+    'expression : NAME "=" expression'
+    p[0] = "{'fun', set, [ %s, %s]}" % (p[1], p[3])
 
 def p_expression_binop(p):
     '''expression : expression '+' expression
@@ -86,11 +92,14 @@ def p_expression_binop(p):
     elif p[2] == '/':
         p[0] = "{'fun', div, [%s, %s]}" % (p[1], p[3])
 
-#def p_declaration(p):
-    #"expression : expression SEMI"
-    #print p[1]
-    #out.append(p[1])
-    #p[0] = None
+#def p_expression_arguments(p):
+    #'''arguments : expression
+                 #| expression ',' arguments'''
+    #print "arguments", p[1]
+
+#def p_expression_function(p):
+    #"function : NAME '(' arguments ')'"
+    #print "function", p[1], p[3]
 
 def p_expression_uminus(p):
     "expression : '-' expression %prec UMINUS"
@@ -117,12 +126,10 @@ def p_error(p):
 import ply.yacc as yacc
 yacc.yacc()
 
-while 1:
-    try:
-        s = raw_input('calc > ')
-    except EOFError:
-        break
-    if not s: continue
-    yacc.parse(s)
-    print "desole:run([], [desole_math, desole_stack], [%s])" % ",\n".join(out)
+f = open(sys.argv[1])
+s = f.read()
+
+yacc.parse(s)
+out.reverse()
+print "\n\n\ndesole:run([], [desole_math, desole_stack], [\n%s])" % ",\n".join(out)
 
