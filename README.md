@@ -14,6 +14,10 @@ Early alpha.
 Try it
 ------
 
+For now, the compiler use ply.
+
+    sudo pip install ply
+
 _test1.dsl_ is a very simple example:
 
     a = 1+2;

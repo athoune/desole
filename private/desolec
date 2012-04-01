@@ -1,23 +1,23 @@
 #!/usr/bin/env python
-
-# Great thanks to http://www.matthieuamiguet.ch/pages/compilateurs
-
 import sys
 
-if sys.version_info[0] >= 3:
-    raw_input = input
+# Great thanks to http://www.matthieuamiguet.ch/pages/compilateurs
 
 reserved_words = (
         'if'
         )
 tokens = (
-    'NAME','NUMBER','SEMI', 'NEWLINE'
+    'NAME','NUMBER','SEMI', 'NEWLINE', 'STRING'
     ) + tuple(map(lambda s:s.upper(), reserved_words))
 
 literals = ['=', '+', '-', '*', '/', '(', ')']
 
 # Tokens
 
+def t_STRING(t):
+    r'"([\\"]|.)*"'
+    t.value = '{str, <<%s>>}' % t.value
+    return t
 def t_NUMBER(t):
     r'\d+'
     t.value = "{int, %s}" % t.value
@@ -27,8 +27,6 @@ def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     if t.value in reserved_words:
         t.type = t.value.upper()
-    else:
-        t.value = "{atom, %s}" % t.value
     return t
 
 t_ignore = " \t\n"
@@ -76,7 +74,7 @@ def p_statement_expr(p):
 
 def p_statement_assign(p):
     'expression : NAME "=" expression'
-    p[0] = "{'fun', set, [ %s, %s]}" % (p[1], p[3])
+    p[0] = "{'fun', set, [ {atom, '%s'}, %s]}" % (p[1], p[3])
 
 def p_expression_binop(p):
     '''expression : expression '+' expression
@@ -92,14 +90,23 @@ def p_expression_binop(p):
     elif p[2] == '/':
         p[0] = "{'fun', div, [%s, %s]}" % (p[1], p[3])
 
-#def p_expression_arguments(p):
-    #'''arguments : expression
-                 #| expression ',' arguments'''
-    #print "arguments", p[1]
+def p_expression_arguments(p):
+    '''arguments : expression
+                 | expression ',' arguments'''
+    print "arguments", p[1]
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]
+    else:
+        p[0] = [p[1]]
 
-#def p_expression_function(p):
-    #"function : NAME '(' arguments ')'"
-    #print "function", p[1], p[3]
+def p_expression_function(p):
+    """expression : NAME '(' arguments ')'
+                | NAME '(' ')'"""
+    print "function", p[1], p[3]
+    if len(p) == 3:
+        p[0] = "{'fun', '%s', [] }" % p[1]
+    else:
+        p[0] = "{'fun', '%s', [%s] }" % (p[1], ", ".join(p[3]))
 
 def p_expression_uminus(p):
     "expression : '-' expression %prec UMINUS"
@@ -113,9 +120,13 @@ def p_expression_number(p):
     "expression : NUMBER"
     p[0] = p[1]
 
+def p_expression_string(p):
+    "expression : STRING"
+    p[0] = p[1]
+
 def p_expression_name(p):
     "expression : NAME"
-    p[0] = "{'fun', get, [%s]}" % p[1]
+    p[0] = "{'fun', get, [{atom, '%s'}]}" % p[1]
 
 def p_error(p):
     if p:
@@ -131,5 +142,5 @@ s = f.read()
 
 yacc.parse(s)
 out.reverse()
-print "\n\n\ndesole:run([], [desole_math, desole_stack], [\n%s])" % ",\n".join(out)
+print "\n\n\ndesole:run([], [desole_debug, desole_math, desole_stack], [\n%s])" % ",\n".join(out)
 
